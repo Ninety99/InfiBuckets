@@ -1,0 +1,14 @@
+name: InfiBuckets
+main: me.NinetyNine.ib.InfiBuckets
+version: 1.0
+author: NinetyNine
+depend: [Vault]
+description: An infinite bucket use plugin
+commands:
+  ib:
+    usage: /<command>
+    description: 
+    permission: ib.get
+permissions:
+  ib.get:
+    default: op
