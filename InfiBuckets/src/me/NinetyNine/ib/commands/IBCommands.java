@@ -30,7 +30,7 @@ public class IBCommands implements Listener, CommandExecutor {
 					
 					if (args[0].equalsIgnoreCase("reload")) {
 						InfiBucketsConfig.saveConfig();
-						sender.sendMessage(ChatColor.GREEN + "Reloaded.");
+						sender.sendMessage(ChatColor.GREEN + "Reloaded!");
 						return true;
 					}
 				}
@@ -61,7 +61,7 @@ public class IBCommands implements Listener, CommandExecutor {
 						
 						if (args[0].equalsIgnoreCase("reload")) {
 							InfiBucketsConfig.saveConfig();
-							IBUtils.sendPlayerMessage(player, "&aReloaded.");
+							IBUtils.sendPlayerMessage(player, "&aReloaded!");
 							return true;
 						}
 					}
