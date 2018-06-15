@@ -35,23 +35,27 @@ public class IBHandler implements Listener {
 			if (bucket.getItemMeta().hasEnchant(Enchantment.ARROW_INFINITE)) {
 				getMoney(player, cost);
 				if (isLava(bucket)) {
-					setBucket(player, bucket);
-					back(player, bucket);
+					doAll(player, bucket);
+					return;
 				} else {
-					setBucket(player, bucket);
-					back(player, bucket);
+					doAll(player, bucket);
+					return;
 				}
 			} else
 				return;
 		}
 	}
+	
+	public void doAll(Player player, ItemStack bucket) {
+		setBucket(player, bucket);
+		back(player, bucket);
+	}
 
 	public void getMoney(Player player, int cost) {
 		EconomyResponse r = EconomyHook.economy.withdrawPlayer(player, cost);
-		if (r.transactionSuccess()) {
-			System.out.println("transactionSuccess()");
-
-		} else {
+		if (r.transactionSuccess())
+			return;
+		else {
 			System.out.println("notSuccess");
 			IBUtils.sendPlayerMessage(player, "&cTransaction failed.");
 			return;
