@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.inventory.ItemStack;
@@ -19,12 +20,11 @@ import net.milkbowl.vault.economy.EconomyResponse;
 
 public class IBHandler implements Listener {
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerBucketEmpty(PlayerBucketEmptyEvent e) {
 		Player player = e.getPlayer();
 		Material bucket = e.getBucket();
 		ItemStack b = new ItemStack(Material.valueOf(bucket.toString()));
-
 		int cost = InfiBuckets.plugin.getConfig().getInt("ibprice");
 
 		useBucket(e, player, cost, b);
