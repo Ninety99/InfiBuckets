@@ -5,11 +5,12 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class IBBucketUtils {
 
-	public static void createBucket(Inventory inventory, String whatBucket) {
+	public static void createBucket(PlayerInventory inventory, String whatBucket) {
 		if (whatBucket.equals("lava")) {
 			ItemStack lava = new ItemStack(Material.LAVA_BUCKET);
 			ItemMeta lmeta = lava.getItemMeta();

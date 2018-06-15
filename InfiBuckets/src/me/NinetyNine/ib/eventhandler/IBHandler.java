@@ -1,5 +1,6 @@
 package me.NinetyNine.ib.eventhandler;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -8,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import me.NinetyNine.ib.InfiBuckets;
@@ -21,68 +23,112 @@ public class IBHandler implements Listener {
 	public void onPlayerBucketEmpty(PlayerBucketEmptyEvent e) {
 		Player player = e.getPlayer();
 		Material bucket = e.getBucket();
-		ItemStack b = new ItemStack(bucket);
+		ItemStack b = new ItemStack(Material.valueOf(bucket.toString()));
 
 		int cost = InfiBuckets.plugin.getConfig().getInt("ibprice");
 
-		useBucket(player, cost, b);
+		useBucket(e, player, cost, b);
 	}
 
-	private void useBucket(Player player, int cost, ItemStack bucket) {
-		if (hasMoney(player, cost) == true) {
+	private void useBucket(PlayerBucketEmptyEvent e, Player player, int cost, ItemStack bucket) {
+		if (hasMoney(e, player, cost)) {
 			if (bucket.getItemMeta().hasEnchant(Enchantment.ARROW_INFINITE)) {
-				if (bucket.getType().toString().contains("lava")) {
-					EconomyResponse r = EconomyHook.economy.withdrawPlayer(player, cost);
-					if (r.transactionSuccess())
-						spawnBack(player, bucket);
-					else {
-						IBUtils.sendPlayerMessage(player, "&cTransaction failed.");
-						return;
-					}
-				}
-
-				if (bucket.getType().toString().contains("water")) {
-					EconomyResponse r = EconomyHook.economy.withdrawPlayer(player, cost);
-					if (r.transactionSuccess())
-						spawnBack(player, bucket);
-					else {
-						IBUtils.sendPlayerMessage(player, "&cTransaction failed.");
-						return;
-					}
+				getMoney(player, cost);
+				if (isLava(bucket)) {
+					setBucket(player, bucket);
+					back(player, bucket);
+				} else {
+					setBucket(player, bucket);
+					back(player, bucket);
 				}
 			} else
 				return;
+		}
+	}
+
+	public void getMoney(Player player, int cost) {
+		EconomyResponse r = EconomyHook.economy.withdrawPlayer(player, cost);
+		if (r.transactionSuccess()) {
+			System.out.println("transactionSuccess()");
+
+		} else {
+			System.out.println("notSuccess");
+			IBUtils.sendPlayerMessage(player, "&cTransaction failed.");
+			return;
+		}
+	}
+
+	public void setBucket(Player player, ItemStack bucket) {
+		PlayerInventory playerinv = player.getInventory();
+		int slots = playerinv.getSize();
+
+		if (playerinv.contains(bucket)) {
+			for (int i = 0; i < slots; i++) {
+				if (playerinv.getItem(i).getType() == Material.BUCKET)
+					playerinv.getItem(i).getItemMeta().addEnchant(Enchantment.ARROW_INFINITE, 1, false);
+			}
 		} else
 			return;
 	}
 
-	private void spawnBack(Player player, ItemStack bucket) {
+	public void back(Player player, ItemStack bucket) {
 		PlayerInventory playerinv = player.getInventory();
-		Material b = bucket.getType();
-		ItemStack buck = new ItemStack(Material.BUCKET);
-		int slot = playerinv.getSize();
+		int slots = playerinv.getSize();
 
 		new BukkitRunnable() {
 			public void run() {
-				if (playerinv.contains(b)) {
-					for (int i = 0; i < slot; i++) {
-						if (playerinv.getItem(i) == buck) {
-							playerinv.getItem(i).setType(b);
-							break;
+				if (playerinv.contains(bucket)) {
+					for (int i = 0; i < slots; i++) {
+						if (isLava(bucket)) {
+							if (playerinv.getItem(i).getType() == Material.BUCKET
+									&& playerinv.getItem(i).getItemMeta().hasEnchants()) {
+								playerinv.setItem(i, getBucket("Lava"));
+								break;
+							}
+						} else {
+							if (playerinv.getItem(i).getType() == Material.BUCKET
+									&& playerinv.getItem(i).getItemMeta().hasEnchants()) {
+								playerinv.setItem(i, getBucket("Water"));
+								break;
+							}
 						}
 					}
-				}
+				} else
+					cancel();
 			}
-		}.runTaskLater(InfiBuckets.plugin, 2L);
+		}.runTaskLater(InfiBuckets.plugin, 5L);
 	}
 
-	private boolean hasMoney(Player player, int cost) {
+	public boolean hasMoney(PlayerBucketEmptyEvent e, Player player, int cost) {
 		if (EconomyHook.economy.has(player, cost))
 			return true;
 		else {
+			e.setCancelled(true);
 			IBUtils.sendPlayerMessage(player, "&cYou do not have enough money to use this!");
 			return false;
 		}
 	}
 
+	public ItemStack getBucket(String whatBucket) {
+		ItemStack bucket = new ItemStack(Material.valueOf(whatBucket + " Bucket"));
+		if (whatBucket.contains("lava")) {
+			ItemMeta lmeta = bucket.getItemMeta();
+			lmeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Lava Bucket");
+			lmeta.addEnchant(Enchantment.ARROW_INFINITE, 1, false);
+			bucket.setItemMeta(lmeta);
+		} else if (whatBucket.contains("water")) {
+			ItemMeta wmeta = bucket.getItemMeta();
+			wmeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Water Bucket");
+			wmeta.addEnchant(Enchantment.ARROW_INFINITE, 1, false);
+			bucket.setItemMeta(wmeta);
+		}
+		return bucket;
+	}
+
+	public boolean isLava(ItemStack item) {
+		if (item.getType().toString().contains("Lava"))
+			return true;
+		else
+			return false;
+	}
 }
